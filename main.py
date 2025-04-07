@@ -11,6 +11,9 @@ GREEN = (  0, 255,   0)
 BLUE  = (  0,   0, 255)
 
 
+MAP = ()
+
+
 def main():
     pg.init()
 
@@ -47,15 +50,17 @@ def main():
         clock.tick(FPS)
 
 
+# Класс игрока
 class Player(pg.sprite.Sprite):
 
     def __init__(self, image: pg.Surface, rect: pg.Rect, speed: int):
         super().__init__()
         self.image = image
         self.rect = rect
-        self.speed = speed
+        self.speed = speed # Скорость изменения координат
 
     def update(self, keys: list):
+        # Раскладка WASD
         if keys[pg.K_w]:
             self._move_up()
         if keys[pg.K_a]:
@@ -66,6 +71,7 @@ class Player(pg.sprite.Sprite):
             self._move_right()
 
 
+    # Метода для изменения координат
     def _move_left(self):
         self.rect.centerx -= self.speed
 
