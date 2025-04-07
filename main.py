@@ -11,7 +11,15 @@ GREEN = (  0, 255,   0)
 BLUE  = (  0,   0, 255)
 
 
-MAP = ()
+LEVEL = (
+    "1 1 1 1 1 1 1 1",
+    "1 0 0 1 0 0 0 1",
+    "1 0 1 0 1 1 0 1",
+    "1 0 1 0 0 1 0 1",
+    "1 0 0 0 0 0 0 1",
+    "1 1 1 1 1 1 1 1",
+)
+CHUNK_SIZE = 100
 
 
 def main():
@@ -26,6 +34,30 @@ def main():
     players_group = pg.sprite.Group()
     player = Player(pg.Surface((50, 50)), pg.Rect(400, 300, 50, 50), 2)
     players_group.add(player)
+
+
+    # Инициализация уровня
+    ground = pg.sprite.Group() # Группа для чанков земли
+    walls  = pg.sprite.Group() # Группа для чанков стен
+    for y, line in enumerate(LEVEL):
+        for x, chunk in enumerate(line.split()):
+            if chunk == "0":
+                chunk = pg.sprite.Sprite(ground) # Чанк `0` - земля
+                # Инициализация спрайта
+                chunk.image = pg.Surface((CHUNK_SIZE, CHUNK_SIZE))
+                chunk.rect  = chunk.image.get_rect()
+                chunk.rect.topleft = x * CHUNK_SIZE, y * CHUNK_SIZE
+
+                chunk.image.fill(GREEN) # Цвет зеленый
+
+            elif chunk == "1":
+                chunk = pg.sprite.Sprite(walls) # Чанк `1` - стены 
+                # Инициализация спрайта
+                chunk.image = pg.Surface((CHUNK_SIZE, CHUNK_SIZE))
+                chunk.rect  = chunk.image.get_rect()
+                chunk.rect.topleft = x * CHUNK_SIZE, y * CHUNK_SIZE
+
+                chunk.image.fill(RED) # Цвет красный
 
 
     # Gameloop helpers
@@ -43,6 +75,8 @@ def main():
         # Rendering
         screen.fill(WHITE)
         
+        ground.draw(screen)
+        walls. draw(screen)
         players_group.draw(screen)
 
         pg.display.flip()
