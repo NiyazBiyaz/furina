@@ -84,6 +84,8 @@ def main():
         # Frames per second limit
         clock.tick(FPS)
 
+    pg.quit()
+
 
 # Класс игрока
 class Player(pg.sprite.Sprite):
