@@ -58,7 +58,8 @@ def main():
                 chunk.rect.topleft = x * CHUNK_SIZE, y * CHUNK_SIZE
 
                 chunk.image.fill(RED) # Цвет красный
-
+    
+    obstacles = pg.sprite.Group(walls.sprites())
 
     # Gameloop helpers
     clock = pg.time.Clock()
@@ -70,7 +71,7 @@ def main():
             if event.type == pg.QUIT:
                 running = False
         keys = pg.key.get_pressed()
-        players_group.update(keys, walls)
+        players_group.update(keys, obstacles)
 
         # Rendering
         screen.fill(WHITE)
