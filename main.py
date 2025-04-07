@@ -21,10 +21,7 @@ def main():
 
     # Game objects (entities)
     players_group = pg.sprite.Group()
-    player = pg.sprite.Sprite()
-    player.image = pg.Surface((50, 50))
-    player.rect = player.image.get_rect()
-    player.speed = 2
+    player = Player(pg.Surface((50, 50)), pg.Rect(400, 300, 50, 50), 2)
     players_group.add(player)
 
 
@@ -38,14 +35,7 @@ def main():
             if event.type == pg.QUIT:
                 running = False
         keys = pg.key.get_pressed()
-        if keys[pg.K_w]:
-            player.rect.centery -= 1
-        if keys[pg.K_a]:
-            player.rect.centerx -= 1
-        if keys[pg.K_s]:
-            player.rect.centery += 1
-        if keys[pg.K_d]:
-            player.rect.centerx += 1
+        players_group.update(keys)
 
         # Rendering
         screen.fill(WHITE)
@@ -55,6 +45,38 @@ def main():
         pg.display.flip()
         # Frames per second limit
         clock.tick(FPS)
+
+
+class Player(pg.sprite.Sprite):
+
+    def __init__(self, image: pg.Surface, rect: pg.Rect, speed: int):
+        super().__init__()
+        self.image = image
+        self.rect = rect
+        self.speed = speed
+
+    def update(self, keys: list):
+        if keys[pg.K_w]:
+            self._move_up()
+        if keys[pg.K_a]:
+            self._move_left()
+        if keys[pg.K_s]:
+            self._move_down()
+        if keys[pg.K_d]:
+            self._move_right()
+
+
+    def _move_left(self):
+        self.rect.centerx -= self.speed
+
+    def _move_right(self):
+        self.rect.centerx += self.speed
+
+    def _move_up(self):
+        self.rect.centery -= self.speed
+    
+    def _move_down(self):
+        self.rect.centery += self.speed
 
 
 if __name__ == "__main__":
