@@ -65,12 +65,12 @@ def main():
     running = True
     # Gameloop
     while running:
-        # EXTERN TO STATES AND INPUT-HANDLER
+        # EXPAND TO STATES AND INPUT HANDLER
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 running = False
         keys = pg.key.get_pressed()
-        players_group.update(keys)
+        players_group.update(keys, walls)
 
         # Rendering
         screen.fill(WHITE)
@@ -89,34 +89,45 @@ class Player(pg.sprite.Sprite):
 
     def __init__(self, image: pg.Surface, rect: pg.Rect, speed: int):
         super().__init__()
-        self.image = image
-        self.rect = rect
-        self.speed = speed # Скорость изменения координат
+        self.image  = image
+        self.rect   = rect
+        self._speed = speed # Скорость изменения координат
+        self._move_x = 0
+        self._move_y = 0
 
-    def update(self, keys: list):
+
+    def update(self, keys: list, obastacles: pg.sprite.Group):
+        self._handle_keys(keys)
+        
+        # сохраняем прошлые координаты
+        prev_left = self.rect.left
+        prev_top = self.rect.top
+
+        # делаем движение, если оно заставляет нас столкнуться с препятствием возвращаем прошлое
+        self.rect.left += self._move_x
+        if pg.sprite.spritecollideany(self, obastacles):
+            self.rect.left = prev_left
+        
+        # делаем движение, если оно заставляет нас столкнуться с препятствием возвращаем прошлое
+        self.rect.centery += self._move_y
+        if pg.sprite.spritecollideany(self, obastacles):
+            self.rect.top = prev_top
+
+
+    def _handle_keys(self, keys: list):
+        # Обнуляем прошлые движения
+        self._move_x = 0
+        self._move_y = 0
+        
         # Раскладка WASD
         if keys[pg.K_w]:
-            self._move_up()
+            self._move_y -= self._speed
         if keys[pg.K_a]:
-            self._move_left()
+            self._move_x -= self._speed
         if keys[pg.K_s]:
-            self._move_down()
+            self._move_y += self._speed
         if keys[pg.K_d]:
-            self._move_right()
-
-
-    # Метода для изменения координат
-    def _move_left(self):
-        self.rect.centerx -= self.speed
-
-    def _move_right(self):
-        self.rect.centerx += self.speed
-
-    def _move_up(self):
-        self.rect.centery -= self.speed
-    
-    def _move_down(self):
-        self.rect.centery += self.speed
+            self._move_x += self._speed
 
 
 if __name__ == "__main__":
