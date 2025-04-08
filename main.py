@@ -33,9 +33,11 @@ def main():
     pg.display.set_caption("Stupid chicken Iskander")
 
 
+    # Load font
     font = pg.font.Font("assets/fonts/PixelOperator.ttf", 32)
 
 
+    # Main menu elements
     resume = Button(font.render("Resume", True, BLACK), (400, 268), to_game)
     quit = Button(font.render("Exit Game", True, BLACK), (400, 300), back)
     menu_ui = pg.sprite.RenderUpdates(resume, quit)
@@ -74,6 +76,7 @@ def main():
         # Rendering
         screen.fill(WHITE)
         
+        # States manager prototype
         if state == "MENU":
             cursor.update()
             menu_ui.update(cursor, cursor_activate)
@@ -97,6 +100,7 @@ def to_game():
     pg.event.post(pg.event.Event(START_GAME))
 
 
+# Pseudo-cursor (at this moment, for ui collisions)
 class Cursor(pg.sprite.Sprite):
 
     def __init__(self):
@@ -108,6 +112,7 @@ class Cursor(pg.sprite.Sprite):
         self.rect.topleft = pg.mouse.get_pos()
 
 
+# Button class, at this time need to expand
 class Button(pg.sprite.Sprite):
 
     def __init__(self, image: pg.Surface, center: tuple[int, int], callback, *groups):
@@ -124,7 +129,7 @@ class Button(pg.sprite.Sprite):
                 self.callback()
             
 
-
+# Refactor of level creating
 class Level:
 
     def __init__(self, map: str, chunk_size):
