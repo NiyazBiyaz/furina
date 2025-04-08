@@ -11,6 +11,9 @@ GREEN = (  0, 255,   0)
 BLUE  = (  0,   0, 255)
 
 
+START_GAME = pg.USEREVENT + 1
+
+
 LEVEL = \
 """1 1 1 1 1 1 1 1
 1 0 0 1 0 0 0 1
@@ -30,6 +33,14 @@ def main():
     pg.display.set_caption("Stupid chicken Iskander")
 
 
+    font = pg.font.Font("assets/fonts/PixelOperator.ttf", 32)
+
+
+    resume = Button(font.render("Resume", True, BLACK), (400, 268), to_game)
+    quit = Button(font.render("Exit Game", True, BLACK), (400, 300), back)
+    menu_ui = pg.sprite.RenderUpdates(resume, quit)
+
+
     # Game objects (entities)
     players_group = pg.sprite.Group()
     player = Player(pg.Surface((50, 50)), pg.Rect(400, 300, 50, 50), 2)
@@ -38,6 +49,9 @@ def main():
     level = Level(LEVEL, CHUNK_SIZE)
 
     # Gameloop helpers
+    state = "MENU"
+    cursor = Cursor()
+    cursor_activate = False
     clock = pg.time.Clock()
     running = True
     # Gameloop
@@ -46,21 +60,69 @@ def main():
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 running = False
+            elif event.type == START_GAME:
+                state = "GAME"
+            elif event.type == pg.MOUSEBUTTONDOWN:
+                if event.button == 0:
+                    cursor_activate = False
+            elif event.type == pg.MOUSEBUTTONUP:
+                if event.button == 1:
+                    cursor_activate = True
         keys = pg.key.get_pressed()
         players_group.update(keys, level.obstacles)
 
         # Rendering
         screen.fill(WHITE)
         
-        level.ground.draw(screen)
-        level.walls. draw(screen)
-        players_group.draw(screen)
+        if state == "MENU":
+            cursor.update()
+            menu_ui.update(cursor, cursor_activate)
+            menu_ui.draw(screen)
+        elif state == "GAME":
+            level.ground. draw(screen)
+            level.walls.  draw(screen)
+            players_group.draw(screen)
 
         pg.display.flip()
         # Frames per second limit
         clock.tick(FPS)
 
     pg.quit()
+
+
+def back():
+    pg.event.post(pg.event.Event(pg.QUIT))
+
+def to_game():
+    pg.event.post(pg.event.Event(START_GAME))
+
+
+class Cursor(pg.sprite.Sprite):
+
+    def __init__(self):
+        super().__init__()
+        self.rect = pg.rect.Rect(0, 0, 1, 1)
+        self.rect.topleft = pg.mouse.get_pos()
+
+    def update(self):
+        self.rect.topleft = pg.mouse.get_pos()
+
+
+class Button(pg.sprite.Sprite):
+
+    def __init__(self, image: pg.Surface, center: tuple[int, int], callback, *groups):
+        super().__init__(groups)
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.center = center
+        self.callback = callback
+
+
+    def update(self, cursor: pg.sprite.Sprite, activate: bool):
+        if pg.sprite.collide_rect(self, cursor):
+            if activate:
+                self.callback()
+            
 
 
 class Level:
