@@ -9,7 +9,7 @@ GREEN = (  0, 255,   0)
 BLUE  = (  0,   0, 255)
 
 
-class Level:
+class Level(pg.sprite.Group):
 
     def __init__(self, map: str, chunk_size):
         # Инициализация уровня
@@ -33,6 +33,8 @@ class Level:
                     chunk = Chunk(RED_SURF, pg.Rect((chunk_size * x, chunk_size * y), CHUNK_SQUARE), self.walls)
             
         self.obstacles = pg.sprite.Group(self.walls.sprites())
+
+        super().__init__(self.ground.sprites(), self.walls.sprites())
 
 
 class Chunk(pg.sprite.Sprite):

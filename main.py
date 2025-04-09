@@ -1,7 +1,8 @@
 import pygame as pg
 from entities import Player
-from ui import Cursor, Button
+from ui import Button
 from level import Level
+from state_utils import back, start_game, START_GAME
 
 
 WIDTH, HEIGHT = 800, 600
@@ -14,18 +15,21 @@ GREEN = (  0, 255,   0)
 BLUE  = (  0,   0, 255)
 
 
-START_GAME = pg.USEREVENT + 1
-
-
 LEVEL = \
-"""1 1 1 1 1 1 1 1
-1 0 0 1 0 0 0 1
-1 0 1 0 1 1 0 1
-1 0 1 0 0 1 0 1
-1 0 0 0 0 0 0 1
-1 1 1 1 1 1 1 1
+"""1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+1 0 0 0 0 0 1 0 0 0 0 0 0 0 0 1
+1 0 1 1 1 0 1 0 1 1 1 1 1 1 0 1
+1 0 1 0 0 0 1 0 0 0 0 0 0 1 0 1
+1 0 1 0 1 1 1 1 1 1 1 1 0 1 0 1
+1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1
+1 0 1 1 1 1 1 1 1 1 0 1 1 1 0 1
+1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1
+1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1
+1 0 0 0 0 0 1 0 0 0 0 0 0 0 0 1
+1 0 1 1 1 0 1 0 1 1 1 1 1 1 0 1
+1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
 """
-CHUNK_SIZE = 100
+CHUNK_SIZE = 50
 
 
 def main():
@@ -39,22 +43,26 @@ def main():
     # Load font
     font = pg.font.Font("assets/fonts/PixelOperator.ttf", 32)
 
-
+    ### Initialize States
     # Main menu elements
-    resume = Button(font.render("Play", True, BLACK), (400, 268), to_game)
+    resume = Button(font.render("Play", True, BLACK), (400, 268), start_game)
     quit = Button(font.render("Exit Game", True, BLACK), (400, 300), back)
-    menu_ui = pg.sprite.RenderUpdates(resume, quit)
+    menu_ui = pg.sprite.Group(resume, quit)
+
+    menu = GroupContainer(menu_ui)
 
 
     # Game objects (entities)
     players_group = pg.sprite.Group()
-    player = Player(pg.Surface((50, 50)), pg.Rect(400, 300, 50, 50), 2)
+    player = Player(pg.Surface((26, 26)), pg.Rect(50, 50, 25, 25), 2)
     players_group.add(player)
-
     level = Level(LEVEL, CHUNK_SIZE)
 
-    # Gameloop helpers
+    game = GroupContainer(level, players_group)
+
     state = "MENU"
+
+    # Gameloop helpers
     cursor = Cursor()
     cursor_activate = False
     clock = pg.time.Clock()
@@ -74,20 +82,18 @@ def main():
                 if event.button == 1:
                     cursor_activate = True
         keys = pg.key.get_pressed()
-        players_group.update(keys, level.obstacles)
+        cursor.update()
 
-        # Rendering
+        # Clean screen
         screen.fill(WHITE)
         
         # States manager prototype
         if state == "MENU":
-            cursor.update()
-            menu_ui.update(cursor, cursor_activate)
-            menu_ui.draw(screen)
+            menu.update(cursor, cursor_activate)
+            menu.draw(screen)
         elif state == "GAME":
-            level.ground. draw(screen)
-            level.walls.  draw(screen)
-            players_group.draw(screen)
+            game.update(keys, level.obstacles)
+            game.draw(screen)
 
         pg.display.flip()
         # Frames per second limit
@@ -96,11 +102,30 @@ def main():
     pg.quit()
 
 
-def back():
-    pg.event.post(pg.event.Event(pg.QUIT))
+# Pseudo-cursor (at this moment, for ui collisions)
+class Cursor(pg.sprite.Sprite):
 
-def to_game():
-    pg.event.post(pg.event.Event(START_GAME))
+    def __init__(self):
+        super().__init__()
+        self.rect = pg.rect.Rect(0, 0, 1, 1)
+        self.rect.topleft = pg.mouse.get_pos()
+
+    def update(self):
+        self.rect.topleft = pg.mouse.get_pos()
+
+
+class GroupContainer:
+
+    def __init__(self, *groups: pg.sprite.Group):
+        self._groups = groups
+
+    def update(self, *args):
+        for grp in self._groups:
+            grp.update(*args)
+
+    def draw(self, screen: pg.Surface):
+        for grp in self._groups:
+            grp.draw(screen)
 
 
 if __name__ == "__main__":
