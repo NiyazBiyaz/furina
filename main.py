@@ -1,4 +1,7 @@
 import pygame as pg
+from entities import Player
+from ui import Cursor, Button
+from level import Level
 
 
 WIDTH, HEIGHT = 800, 600
@@ -38,7 +41,7 @@ def main():
 
 
     # Main menu elements
-    resume = Button(font.render("Resume", True, BLACK), (400, 268), to_game)
+    resume = Button(font.render("Play", True, BLACK), (400, 268), to_game)
     quit = Button(font.render("Exit Game", True, BLACK), (400, 300), back)
     menu_ui = pg.sprite.RenderUpdates(resume, quit)
 
@@ -98,110 +101,6 @@ def back():
 
 def to_game():
     pg.event.post(pg.event.Event(START_GAME))
-
-
-# Pseudo-cursor (at this moment, for ui collisions)
-class Cursor(pg.sprite.Sprite):
-
-    def __init__(self):
-        super().__init__()
-        self.rect = pg.rect.Rect(0, 0, 1, 1)
-        self.rect.topleft = pg.mouse.get_pos()
-
-    def update(self):
-        self.rect.topleft = pg.mouse.get_pos()
-
-
-# Button class, at this time need to expand
-class Button(pg.sprite.Sprite):
-
-    def __init__(self, image: pg.Surface, center: tuple[int, int], callback, *groups):
-        super().__init__(groups)
-        self.image = image
-        self.rect = self.image.get_rect()
-        self.rect.center = center
-        self.callback = callback
-
-
-    def update(self, cursor: pg.sprite.Sprite, activate: bool):
-        if pg.sprite.collide_rect(self, cursor):
-            if activate:
-                self.callback()
-            
-
-# Refactor of level creating
-class Level:
-
-    def __init__(self, map: str, chunk_size):
-        # Инициализация уровня
-        self.ground = pg.sprite.Group() # Группа для чанков земли
-        self.walls  = pg.sprite.Group() # Группа для чанков стен
-        for y, line in enumerate(map.split("\n")):
-            for x, chunk in enumerate(line.split()):
-                if chunk == "0":
-                    chunk = pg.sprite.Sprite(self.ground) # Чанк `0` - земля
-                    # Инициализация спрайта
-                    chunk.image = pg.Surface((chunk_size, chunk_size))
-                    chunk.rect  = chunk.image.get_rect()
-                    chunk.rect.topleft = x * chunk_size, y * chunk_size
-
-                    chunk.image.fill(GREEN) # Цвет зеленый
-
-                elif chunk == "1":
-                    chunk = pg.sprite.Sprite(self.walls) # Чанк `1` - стены 
-                    # Инициализация спрайта
-                    chunk.image = pg.Surface((chunk_size, chunk_size))
-                    chunk.rect  = chunk.image.get_rect()
-                    chunk.rect.topleft = x * chunk_size, y * chunk_size
-
-                    chunk.image.fill(RED) # Цвет красный
-            
-        self.obstacles = pg.sprite.Group(self.walls.sprites())
-
-
-# Класс игрока
-class Player(pg.sprite.Sprite):
-
-    def __init__(self, image: pg.Surface, rect: pg.Rect, speed: int):
-        super().__init__()
-        self.image  = image
-        self.rect   = rect
-        self._speed = speed # Скорость изменения координат
-        self._move_x = 0
-        self._move_y = 0
-
-
-    def update(self, keys: list, obastacles: pg.sprite.Group):
-        self._handle_keys(keys)
-        
-        # сохраняем прошлые координаты
-        prev_left = self.rect.left
-        prev_top = self.rect.top
-
-        # делаем движение, если оно заставляет нас столкнуться с препятствием возвращаем прошлое
-        self.rect.left += self._move_x
-        if pg.sprite.spritecollideany(self, obastacles):
-            self.rect.left = prev_left
-        
-        self.rect.centery += self._move_y
-        if pg.sprite.spritecollideany(self, obastacles):
-            self.rect.top = prev_top
-
-
-    def _handle_keys(self, keys: list):
-        # Обнуляем прошлые движения
-        self._move_x = 0
-        self._move_y = 0
-        
-        # Раскладка WASD
-        if keys[pg.K_w]:
-            self._move_y -= self._speed
-        if keys[pg.K_a]:
-            self._move_x -= self._speed
-        if keys[pg.K_s]:
-            self._move_y += self._speed
-        if keys[pg.K_d]:
-            self._move_x += self._speed
 
 
 if __name__ == "__main__":
