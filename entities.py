@@ -13,7 +13,7 @@ class Player(pg.sprite.Sprite):
         self._move_y = 0
 
 
-    def update(self, keys: list, obastacles: pg.sprite.Group):
+    def update(self, keys: list, obstacles: pg.sprite.Group):
         self._handle_keys(keys)
         
         # сохраняем прошлые координаты
@@ -22,11 +22,11 @@ class Player(pg.sprite.Sprite):
 
         # делаем движение, если оно заставляет нас столкнуться с препятствием возвращаем прошлое
         self.rect.left += self._move_x
-        if pg.sprite.spritecollideany(self, obastacles):
+        if pg.sprite.spritecollideany(self, obstacles):
             self.rect.left = prev_left
         
         self.rect.centery += self._move_y
-        if pg.sprite.spritecollideany(self, obastacles):
+        if pg.sprite.spritecollideany(self, obstacles):
             self.rect.top = prev_top
 
 
