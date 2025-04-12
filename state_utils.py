@@ -2,7 +2,7 @@ import pygame
 from pygame.event import Event
 
 
-START_GAME = pygame.USEREVENT + 1
+STATE_CHANGE = pygame.event.custom_type()
 
 
 def _post_event(event):
@@ -12,5 +12,8 @@ def _post_event(event):
 def back() -> None:
     _post_event(Event(pygame.QUIT))
 
-def start_game() -> None:
-    _post_event(Event(START_GAME))
+def to_game() -> None:
+    _post_event(Event(STATE_CHANGE, direct="GAME"))
+
+def to_menu() -> None:
+    _post_event(Event(STATE_CHANGE, direct="MENU"))

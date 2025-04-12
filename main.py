@@ -2,7 +2,8 @@ import pygame as pg
 from entities import Player
 from ui import Button
 from level import Level
-from state_utils import back, start_game, START_GAME
+from state_utils import back, to_game, to_menu, STATE_CHANGE
+from events import EventBus, EventListener
 
 
 WIDTH, HEIGHT = 800, 600
@@ -39,60 +40,55 @@ def main():
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     pg.display.set_caption("Stupid chicken Iskander")
 
+    event_bus = EventBus()
+    cursor = Cursor()
 
     # Load font
     font = pg.font.Font("assets/fonts/PixelOperator.ttf", 32)
 
     ### Initialize States
     # Main menu elements
-    resume = Button(font.render("Play", True, BLACK), (400, 268), start_game)
-    quit = Button(font.render("Exit Game", True, BLACK), (400, 300), back)
+    resume = Button(font.render("Play", True, BLACK), (400, 268), cursor, to_game, event_bus)
+    quit = Button(font.render("Exit Game", True, BLACK), (400, 300), cursor, back, event_bus)
     menu_ui = pg.sprite.Group(resume, quit)
 
     menu = GroupContainer(menu_ui)
 
 
     # Game objects (entities)
-    players_group = pg.sprite.Group()
-    player = Player(pg.Surface((26, 26)), pg.Rect(50, 50, 25, 25), 2)
-    players_group.add(player)
     level = Level(LEVEL, CHUNK_SIZE)
+    players_group = pg.sprite.Group()
+    player = Player(pg.Surface((26, 26)), pg.Rect(50, 50, 25, 25), 2, event_bus, level.obstacles)
+    players_group.add(player)
 
-    game = GroupContainer(level, players_group)
+    exit = Button(font.render("Main menu", True, BLACK), (80, 30), cursor, to_menu, event_bus)
+    game_ui = pg.sprite.Group(exit)
 
-    state = "MENU"
+    game = GroupContainer(level, players_group, game_ui)
+
+    state_manager = StateManager("MENU", event_bus)
 
     # Gameloop helpers
-    cursor = Cursor()
-    cursor_activate = False
     clock = pg.time.Clock()
     running = True
+
     # Gameloop
     while running:
         # EXPAND TO STATES AND INPUT HANDLER
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                running = False
-            elif event.type == START_GAME:
-                state = "GAME"
-            elif event.type == pg.MOUSEBUTTONDOWN:
-                if event.button == 0:
-                    cursor_activate = False
-            elif event.type == pg.MOUSEBUTTONUP:
-                if event.button == 1:
-                    cursor_activate = True
-        keys = pg.key.get_pressed()
+        event_bus.update()
         cursor.update()
+
+        running = state_manager.update()
 
         # Clean screen
         screen.fill(WHITE)
         
         # States manager prototype
-        if state == "MENU":
-            menu.update(cursor, cursor_activate)
+        if state_manager.state == "MENU":
+            menu.update()
             menu.draw(screen)
-        elif state == "GAME":
-            game.update(keys, level.obstacles)
+        elif state_manager.state == "GAME":
+            game.update()
             game.draw(screen)
 
         pg.display.flip()
@@ -114,18 +110,43 @@ class Cursor(pg.sprite.Sprite):
         self.rect.topleft = pg.mouse.get_pos()
 
 
+class StateManager(EventListener):
+
+    def __init__(self, start_state: str, eventbus: EventBus):
+        self.state = start_state
+        self.running = True
+        super().registermany(eventbus, 
+                             pg.QUIT,
+                             STATE_CHANGE)
+
+
+    def update(self):
+        return self.running
+
+
+    def callback(self, event: pg.event.Event):
+        if event.type == STATE_CHANGE:
+            self.state = event.direct
+        elif event.type == pg.QUIT:
+            self.running = False
+
+
 class GroupContainer:
 
     def __init__(self, *groups: pg.sprite.Group):
+        if not groups:
+            raise TypeError("At least one group is required!")
         self._groups = groups
-
-    def update(self, *args):
+        
+    
+    def draw(self, surface: pg.Surface, bgsurf: pg.Surface = None, special_flags: int = 0):
         for grp in self._groups:
-            grp.update(*args)
+            grp.draw(surface, bgsurf, special_flags)
 
-    def draw(self, screen: pg.Surface):
+
+    def update(self):
         for grp in self._groups:
-            grp.draw(screen)
+            grp.update()
 
 
 if __name__ == "__main__":
