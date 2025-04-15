@@ -20,11 +20,6 @@ class Player(pg.sprite.Sprite, EventListener):
         super().registermany(event_bus,
                                    pg.KEYDOWN,
                                    pg.KEYUP  ,)
-
-
-
-    def callback(self, event: pg.event.Event):
-        self._handle_key(event)
         
 
     def update(self):        
@@ -42,7 +37,7 @@ class Player(pg.sprite.Sprite, EventListener):
             self.rect.top = prev_top
 
 
-    def _handle_key(self, event: pg.event.Event):
+    def handle_event(self, event: pg.event.Event):
         if event.type == pg.KEYDOWN:
             match event.scancode:
                 case pg.KSCAN_W:

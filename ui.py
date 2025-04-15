@@ -27,7 +27,7 @@ class Button(pg.sprite.Sprite, EventListener):
             self.on_activate()
 
 
-    def callback(self, event: pg.event.Event):
+    def handle_event(self, event: pg.event.Event):
         if event.button == pg.BUTTON_LEFT:
             if pg.sprite.collide_rect(self, self.cursor):
                 self.activate = True

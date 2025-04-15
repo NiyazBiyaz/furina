@@ -124,7 +124,7 @@ class StateManager(EventListener):
         return self.running
 
 
-    def callback(self, event: pg.event.Event):
+    def handle_event(self, event: pg.event.Event):
         if event.type == STATE_CHANGE:
             self.state = event.direct
         elif event.type == pg.QUIT:

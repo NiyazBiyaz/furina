@@ -4,9 +4,9 @@ from collections import defaultdict
 
 class EventListener:
 
-    def callback(self, event: pg.event.Event) -> None:
+    def handle_event(self, event: pg.event.Event) -> None:
         """Overridable method for `EventBus` interface"""
-        raise NotImplementedError(f"Override method '{self.on_activate.__name__}' in your class")
+        raise NotImplementedError(f"Override method '{self.handle_event.__name__}' in your class")
         
 
     def register(self, event: int, bus) -> None:
@@ -42,4 +42,4 @@ class EventBus:
 
     def dispatch(self, event: pg.event.Event):
         for listener in self.listeners[event.type]:
-            listener.callback(event)
+            listener.handle_event(event)
